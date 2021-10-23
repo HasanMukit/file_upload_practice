@@ -2,7 +2,10 @@ const express = require('express')
 const multer = require('multer')
 const ejs = require('ejs')
 const path = require('path')
-const serveIndex = require('serve-index')
+const fs = require('fs')
+
+
+
 
 // Set Storage Engine
 const storage = multer.diskStorage({
@@ -18,7 +21,7 @@ const upload = multer({
     fileFilter: function(req, file, cb) {
         checkFileType(file,cb)
     }
-}).single('Docs')
+}).single('docs')
 //Check File Type
 function checkFileType(file, cb) {
     //Allowed ext
@@ -41,34 +44,86 @@ const port = process.env.PORT || 3000
 app.set('view engine', 'ejs');
 
 //Public Folder 
-app.use(
-    '/ftp',
-    express.static('public/ftp'),
-    serveIndex('public/ftp', { icons: true })
-)
+
 app.get('/', (req, res) => res.render('index'))
 
 app.post('/upload', (req, res) => {
     upload(req, res, (err) => {
         if(err) {
-            res.render('index', {
-                msg: err
+            res.send({
+                msg: err.message
             })
         }
         else {
             if(req.file == undefined) {
-                res.render('index', {
+                res.send({
                     msg: 'Error: No File Selected'
                 })
             }
             else {
-                res.render('index', {
+                res.send({
                     msg: 'File Uploaded!',
                     file: `uploads/${req.file.filename}`
                 })
             }
         }
     })
+})
+
+
+app.get('/files', (req, res) => {
+    
+    const id = req.query.id
+    const pass = req.query.password
+    
+    if (id === 'zeshan' && pass === '1234') {
+        let direcotry = './public/uploads'
+        let dirBuf = Buffer.from(direcotry)
+        fs.readdir(dirBuf, (err, files) => {
+            if(err) {
+                res.send(err)
+            }
+            else {
+                res.send(files)
+            }
+        })
+    }
+    else [
+        res.send({
+            msg: 'invalid user'
+        })
+    ]
+    
+})
+
+app.get('/file', (req, res) => {
+    
+    const id = req.query.id
+    const pass = req.query.password
+
+    if (id === 'zeshan' && pass === '1234') {
+        const fileName = req.query.fileName
+        let direcotry = './public/uploads'
+        let dirBuf = Buffer.from(direcotry)
+        let filePath = direcotry+'/'+fileName
+        if(fs.existsSync(filePath)) {
+            fs.readFile(filePath, (err, data) => {
+                res.set({
+                  "Content-Type": "application/pdf", //here you set the content type to pdf
+                  "Content-Disposition": "inline; filename=" + fileName, //if you change from inline to attachment if forces the file to download but inline displays the file on the browser
+                });
+                res.send(data); // here we send the pdf file to the browser
+                });
+        }
+        else {
+            console.log('file not found')
+        }   
+    }
+    else {
+        res.send({
+            msg: 'invalid user'
+        })
+    }    
 })
 
 
