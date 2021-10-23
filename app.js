@@ -2,6 +2,7 @@ const express = require('express')
 const multer = require('multer')
 const ejs = require('ejs')
 const path = require('path')
+const serveIndex = require('serve-index')
 
 // Set Storage Engine
 const storage = multer.diskStorage({
@@ -40,8 +41,11 @@ const port = process.env.PORT || 3000
 app.set('view engine', 'ejs');
 
 //Public Folder 
-app.use(express.static('./public'));
-
+app.use(
+    '/ftp',
+    express.static('public/ftp'),
+    serveIndex('public/ftp', { icons: true })
+)
 app.get('/', (req, res) => res.render('index'))
 
 app.post('/upload', (req, res) => {
@@ -66,5 +70,6 @@ app.post('/upload', (req, res) => {
         }
     })
 })
+
 
 app.listen(port, () => console.log(`server started ib port ${port}`))
