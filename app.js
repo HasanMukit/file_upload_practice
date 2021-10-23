@@ -34,6 +34,7 @@ function checkFileType(file, cb) {
 
 //Init app
 const app = express()
+const port = process.env.port || 3000
 
 //EJS
 app.set('view engine', 'ejs');
@@ -65,5 +66,5 @@ app.post('/upload', (req, res) => {
         }
     })
 })
-const port = 3000;
+
 app.listen(port, () => console.log(`server started ib port ${port}`))
